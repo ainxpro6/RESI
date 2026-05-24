@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { type ProcessedFile, type FileStatus, processSingleFile, reprocessWithManualCode } from "@/lib/pdf-processor";
+import { fetchPdfFromUrl } from "@/lib/pdf-fetcher";
 import { buildZip } from "@/lib/zip-builder";
 import { downloadSinglePdf, downloadZip } from "@/lib/download";
 import { generateId } from "@/lib/utils";
@@ -27,6 +28,7 @@ export function usePdfProcessor() {
       modifiedPdf: null,
       error: null,
       processingTimeMs: null,
+      sourceUrl: null,
     }));
     setFiles((prev) => [...prev, ...processedFiles]);
     return processedFiles;
@@ -39,28 +41,6 @@ export function usePdfProcessor() {
   const clearAll = useCallback(() => {
     setFiles([]);
   }, []);
-
-  const processAll = useCallback(async () => {
-    setIsProcessing(true);
-    const queuedFiles = files.filter((f) => f.status === "QUEUED");
-
-    for (const pf of queuedFiles) {
-      await processSingleFile(pf.file, pf.id, {
-        onStatusChange: (id, status) => updateFile(id, { status }),
-        onCodeExtracted: (id, code, error) =>
-          updateFile(id, { extractedCode: code, error: error || null }),
-        onComplete: (id, result) =>
-          updateFile(id, {
-            status: result.status,
-            modifiedPdf: result.modifiedPdf,
-            error: result.error,
-            processingTimeMs: result.processingTimeMs,
-          }),
-      });
-    }
-
-    setIsProcessing(false);
-  }, [files, updateFile]);
 
   const processNewFiles = useCallback(
     async (newFiles: File[]) => {
@@ -85,6 +65,64 @@ export function usePdfProcessor() {
       setIsProcessing(false);
     },
     [addFiles, updateFile]
+  );
+
+  /**
+   * Fetch a PDF from a Desty URL and process it through the normal pipeline.
+   */
+  const processUrl = useCallback(
+    async (url: string) => {
+      const id = generateId();
+
+      // Create a placeholder entry immediately
+      const placeholder: ProcessedFile = {
+        id,
+        file: new File([], "downloading..."),
+        status: "PROCESSING",
+        extractedCode: null,
+        manualCode: null,
+        modifiedPdf: null,
+        error: null,
+        processingTimeMs: null,
+        sourceUrl: url,
+      };
+
+      setFiles((prev) => [...prev, placeholder]);
+      setIsProcessing(true);
+
+      try {
+        // Fetch the PDF via proxy
+        const { buffer, fileName } = await fetchPdfFromUrl(url);
+
+        // Create a real File object from the buffer
+        const file = new File([buffer], fileName, { type: "application/pdf" });
+
+        // Update the entry with the real file
+        updateFile(id, { file });
+
+        // Process through existing pipeline
+        await processSingleFile(file, id, {
+          onStatusChange: (fid, status) => updateFile(fid, { status }),
+          onCodeExtracted: (fid, code, error) =>
+            updateFile(fid, { extractedCode: code, error: error || null }),
+          onComplete: (fid, result) =>
+            updateFile(fid, {
+              status: result.status,
+              modifiedPdf: result.modifiedPdf,
+              error: result.error,
+              processingTimeMs: result.processingTimeMs,
+            }),
+        });
+      } catch (error) {
+        updateFile(id, {
+          status: "FAILED",
+          error: error instanceof Error ? error.message : "Gagal mengunduh PDF dari link.",
+        });
+      }
+
+      setIsProcessing(false);
+    },
+    [updateFile]
   );
 
   const retryWithManualCode = useCallback(
@@ -157,8 +195,8 @@ export function usePdfProcessor() {
     addFiles,
     removeFile,
     clearAll,
-    processAll,
     processNewFiles,
+    processUrl,
     retryWithManualCode,
     handleDownloadSingle,
     handleDownloadAll,

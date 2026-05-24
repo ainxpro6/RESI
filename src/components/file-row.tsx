@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, X, Loader2, Check, AlertTriangle, Send } from "lucide-react";
+import { Download, X, Loader2, Check, AlertTriangle, Send, Link2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,13 +90,23 @@ export function FileRow({
         {/* File info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
+            {file.sourceUrl && (
+              <Link2 className="w-3.5 h-3.5 text-primary/60 shrink-0" />
+            )}
             <p className="text-sm font-medium truncate max-w-[200px] sm:max-w-[300px]">
               {file.file.name}
             </p>
             <span className="text-[11px] text-muted-foreground/60">
-              {formatFileSize(file.file.size)}
+              {file.file.size > 0 ? formatFileSize(file.file.size) : ""}
             </span>
           </div>
+
+          {/* Source URL */}
+          {file.sourceUrl && (
+            <p className="text-[10px] text-muted-foreground/40 truncate max-w-[250px] sm:max-w-[400px] mt-0.5">
+              {file.sourceUrl}
+            </p>
+          )}
 
           {/* Processing time */}
           {file.processingTimeMs && (

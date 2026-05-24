@@ -1,17 +1,46 @@
 "use client";
 
+import { Suspense, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/header";
 import { PdfUploader } from "@/components/pdf-uploader";
 import { ProcessingDashboard } from "@/components/processing-dashboard";
 import { DownloadBar } from "@/components/download-bar";
 import { EmptyState } from "@/components/empty-state";
 import { usePdfProcessor } from "@/hooks/use-pdf-processor";
+import { isValidDestyPdfUrl } from "@/lib/pdf-fetcher";
+
+/**
+ * Inner component that uses useSearchParams (must be inside Suspense).
+ * Reads the ?url= query parameter and auto-processes it.
+ */
+function UrlAutoProcessor({ processUrl }: { processUrl: (url: string) => void }) {
+  const searchParams = useSearchParams();
+  const hasAutoProcessed = useRef(false);
+
+  useEffect(() => {
+    if (hasAutoProcessed.current) return;
+
+    const urlParam = searchParams.get("url");
+    if (urlParam && isValidDestyPdfUrl(urlParam)) {
+      hasAutoProcessed.current = true;
+      processUrl(urlParam);
+    }
+  }, [searchParams, processUrl]);
+
+  return null;
+}
 
 export default function Home() {
   const processor = usePdfProcessor();
 
   return (
     <div className="relative min-h-screen flex flex-col">
+      {/* Auto-process URL from query parameter (e.g. from browser extension) */}
+      <Suspense fallback={null}>
+        <UrlAutoProcessor processUrl={processor.processUrl} />
+      </Suspense>
+
       {/* Background effects */}
       <div className="fixed inset-0 bg-grid pointer-events-none opacity-50" />
       <div className="fixed inset-0 bg-radial-glow pointer-events-none" />
@@ -25,6 +54,7 @@ export default function Home() {
           <section id="uploader-section" className="animate-slide-up">
             <PdfUploader
               onFilesAdded={processor.processNewFiles}
+              onLinkSubmit={processor.processUrl}
               isProcessing={processor.isProcessing}
               fileCount={processor.totalCount}
             />
@@ -75,7 +105,7 @@ export default function Home() {
         <footer className="relative z-10 text-center py-6 text-sm text-muted-foreground border-t border-border/40">
           <p>
             RESI — Seluruh pemrosesan dilakukan di browser Anda.{" "}
-            <span className="text-primary/70">Data Anda tidak dikirim ke server manapun.</span>
+            <span className="text-primary/70">Link diunduh melalui server, tanpa menyimpan data.</span>
           </p>
         </footer>
       </div>

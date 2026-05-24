@@ -12,6 +12,7 @@ export interface ProcessedFile {
   modifiedPdf: Uint8Array | null;
   error: string | null;
   processingTimeMs: number | null;
+  sourceUrl: string | null;
 }
 
 export interface ProcessingCallbacks {
@@ -50,6 +51,7 @@ export async function processSingleFile(
         modifiedPdf: null,
         error: extraction.error || "Kode tidak ditemukan",
         processingTimeMs: Math.round(performance.now() - startTime),
+        sourceUrl: null,
       };
       callbacks.onComplete(id, result);
       return result;
@@ -75,6 +77,7 @@ export async function processSingleFile(
         modifiedPdf: null,
         error: modification.error || "Gagal memodifikasi PDF",
         processingTimeMs: Math.round(performance.now() - startTime),
+        sourceUrl: null,
       };
       callbacks.onComplete(id, result);
       return result;
@@ -89,6 +92,7 @@ export async function processSingleFile(
       modifiedPdf: modification.modifiedPdf,
       error: null,
       processingTimeMs: Math.round(performance.now() - startTime),
+      sourceUrl: null,
     };
 
     callbacks.onComplete(id, result);
@@ -103,6 +107,7 @@ export async function processSingleFile(
       modifiedPdf: null,
       error: `Error: ${error instanceof Error ? error.message : "Unknown"}`,
       processingTimeMs: Math.round(performance.now() - startTime),
+      sourceUrl: null,
     };
     callbacks.onComplete(id, result);
     return result;

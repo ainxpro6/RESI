@@ -31,7 +31,7 @@ export function EmptyState() {
           Belum ada file yang diunggah
         </h3>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Unggah file PDF resi pengiriman Anda ke area di atas. Sistem akan otomatis
+          Drag and Drop PDF resi pengiriman atau Paste Link Desty ke area di atas. Sistem akan otomatis
           mengekstrak Kode Pengambilan dan mencetak ulang dalam ukuran besar.
         </p>
       </div>
@@ -39,7 +39,7 @@ export function EmptyState() {
       {/* Steps */}
       <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg">
         {[
-          { step: "1", title: "Unggah", desc: "Seret file PDF resi" },
+          { step: "1", title: "Unggah / Paste", desc: "Drag and Drop PDF atau Paste Link" },
           { step: "2", title: "Proses", desc: "Ekstrak kode otomatis" },
           { step: "3", title: "Unduh", desc: "Download PDF baru" },
         ].map((item) => (
