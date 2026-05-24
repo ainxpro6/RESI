@@ -52,13 +52,18 @@ export function usePdfProcessor() {
           onStatusChange: (id, status) => updateFile(id, { status }),
           onCodeExtracted: (id, code, error) =>
             updateFile(id, { extractedCode: code, error: error || null }),
-          onComplete: (id, result) =>
+          onComplete: (id, result) => {
             updateFile(id, {
               status: result.status,
               modifiedPdf: result.modifiedPdf,
               error: result.error,
               processingTimeMs: result.processingTimeMs,
-            }),
+            });
+            // Auto-download on success
+            if (result.status === "SUCCESS" && result.modifiedPdf) {
+              downloadSinglePdf(result.modifiedPdf, result.file.name);
+            }
+          },
         });
       }
 
@@ -105,13 +110,18 @@ export function usePdfProcessor() {
           onStatusChange: (fid, status) => updateFile(fid, { status }),
           onCodeExtracted: (fid, code, error) =>
             updateFile(fid, { extractedCode: code, error: error || null }),
-          onComplete: (fid, result) =>
+          onComplete: (fid, result) => {
             updateFile(fid, {
               status: result.status,
               modifiedPdf: result.modifiedPdf,
               error: result.error,
               processingTimeMs: result.processingTimeMs,
-            }),
+            });
+            // Auto-download on success
+            if (result.status === "SUCCESS" && result.modifiedPdf) {
+              downloadSinglePdf(result.modifiedPdf, result.file.name);
+            }
+          },
         });
       } catch (error) {
         updateFile(id, {
@@ -141,6 +151,8 @@ export function usePdfProcessor() {
           modifiedPdf: result.modifiedPdf,
           error: null,
         });
+        // Auto-download on success
+        downloadSinglePdf(result.modifiedPdf, file.file.name);
       } else {
         updateFile(id, {
           status: "FAILED",
