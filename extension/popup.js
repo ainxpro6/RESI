@@ -1,5 +1,5 @@
 const DESTY_HOST = "desty-upload-indonesia.oss-ap-southeast-5.aliyuncs.com";
-const DEFAULT_APP_URL = "http://localhost:3000";
+const DEFAULT_APP_URL = "http://resi-one.vercel.app";
 const STORAGE_KEY = "resi_app_url";
 
 /**
