@@ -43,8 +43,8 @@ export async function stampCodeOnPdf(
       const code = pageResult.code;
 
       // Calculate font size to make the code prominent but fitting
-      const maxFontSize = 72;
-      const minFontSize = 48;
+      const maxFontSize = 96;
+      const minFontSize = 72;
       let fontSize = maxFontSize;
 
       // Measure text width and adjust font size if needed
